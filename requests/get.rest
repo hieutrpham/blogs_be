@@ -1,14 +1,14 @@
 ###
-GET http://localhost:3003/api/blogs
+GET http://localhost:3001/api/blogs
 
 ###
 
-POST http://localhost:3003/api/blogs HTTP/1.1
+POST http://localhost:3001/api/blogs HTTP/1.1
 content-type: application/json
 
 {
-    "title": "pham13123",
+    "title": "messmer",
     "author": "hieuphaam",
-    "url": "www.hieu.com",
+    "url": "www.hieu23.com",
     "likes": 2343
 }
