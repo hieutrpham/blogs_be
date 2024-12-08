@@ -8,7 +8,7 @@ const userRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
 const mongoose = require('mongoose')
 const logger = require('./utils/logger')
-const errorHandler = require('./utils/middleware')
+const middleware = require('./utils/middleware')
 
 mongoose.set('strictQuery', false)
 
@@ -22,10 +22,12 @@ app.use(cors())
 app.use(express.static('dist'))
 app.use(express.json())
 
+app.use(middleware.tokenExtractor)
+
 app.use('/api/blogs', blogRouter)
 app.use('/api/users', userRouter)
 app.use('/api/login', loginRouter)
 
-app.use(errorHandler)
+app.use(middleware.errorHandler)
 
 module.exports = app
