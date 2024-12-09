@@ -1,30 +1,24 @@
 const blogRouter = require('express').Router()
 const Blog = require('../models/blog.js')
 const User = require('../models/user.js')
-const jwt = require('jsonwebtoken')
+const middleware = require('../utils/middleware')
 
 blogRouter.get('/', async (request, response) => { 
     const blog = await Blog.find({}).populate('userId', {username: 1, name: 1})
     response.json(blog)
 })
 
-blogRouter.post('/', async (request, response) => {
+blogRouter.post('/', middleware.userExtractor, async (request, response) => {
     const body = request.body
 
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-    
-    if (!decodedToken.id) {
-        return response.status(401).json({error: 'token invalid'})
-    }
-
-    const user = await User.findById(decodedToken.id)
+    const user = await User.findById(request.user)
     
     const newBlog = new Blog({
         "title": body.title,
         "author": body.author,
         "url": body.url,
         "likes": body.likes,
-        "userId": decodedToken.id
+        "userId": request.user
     })
 
     const savedBlog = await newBlog.save()
@@ -38,13 +32,7 @@ blogRouter.post('/', async (request, response) => {
     response.status(401).json(blogs)
 })
 
-blogRouter.delete('/:id', async (request, response) => {
-
-    const decodedToken = jwt.verify(request.token, process.env.SECRET)
-
-    if (!decodedToken.id) {
-        return response.status(401).json({error: 'token invalid'})
-    }
+blogRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
 
     const blog = await Blog.findById(request.params.id)
 
@@ -52,8 +40,7 @@ blogRouter.delete('/:id', async (request, response) => {
         return response.status(401).json({error: 'blog no longer exist'})
     }
 
-    if (blog.userId.toString() === decodedToken.id) {
-        console.log('same userid')
+    if (blog.userId.toString() === request.user) {
         await Blog.findByIdAndDelete(request.params.id)
         response.status(204).end()
     } else {response.status(401).json({error: 'invalid username'})}
