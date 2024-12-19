@@ -33,17 +33,23 @@ blogRouter.post('/', middleware.userExtractor, async (request, response) => {
 })
 
 blogRouter.delete('/:id', middleware.userExtractor, async (request, response) => {
+  
+    const blog = await Blog.findById(request.params.id)  
 
-    const blog = await Blog.findById(request.params.id)
-
+    const blogUserID = blog.userId ? blog.userId.toString() : 0
+    
     if (!blog) {
         return response.status(401).json({error: 'blog no longer exist'})
     }
-
-    if (blog.userId.toString() === request.user) {
-        await Blog.findByIdAndDelete(request.params.id)
-        response.status(204).end()
-    } else {response.status(401).json({error: 'invalid username'})}
+    try {
+        if (blogUserID === request.user) {
+            await Blog.findByIdAndDelete(request.params.id)
+            response.status(204).end()
+        } else {response.status(401).json({error: 'invalid username'})}
+    } catch(err) {
+        console.log(err)
+        response.json({error: err})
+    }
 })
 
 blogRouter.put('/:id', async (request, response) => {
